@@ -49,9 +49,9 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			// "assets/images/DesktopWallpaper/d4.avif",
 			// "assets/images/DesktopWallpaper/d5.avif",
 			// "assets/images/DesktopWallpaper/d6.avif",
-			"src/assets/images/robin/1.png",
-			"src/assets/images/robin/11.png",
-			"src/assets/images/robin/12.png"
+			"assets/images/robin/1.png",
+			"assets/images/robin/11.png",
+			"assets/images/robin/12.png"
 		],
 		// 移动背景图片（支持单张或多张随机）
 		// mobile: "assets/images/MobileWallpaper/m1.avif",
