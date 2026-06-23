@@ -9,7 +9,7 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/robin/bird.webp",
 
 	// 名字
-	name: "知更鸟",
+	name: "Liuli",
 
 	// 个人签名
 	bio: "愿此行，终抵群星",
