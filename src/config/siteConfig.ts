@@ -55,8 +55,8 @@ export const siteConfig: SiteConfig = {
 	// Favicon 配置
 	favicon: [
 		{
-			// 图标文件路径
-			src: "/favicon/favicon.ico",
+			// 图标文件路径（网页标签图标）
+			src: "/favicon/网页标签图标/二创崩铁知更鸟图标.png",
 			// 可选，指定主题 'light' | 'dark'
 			// theme: "light",
 			// 可选，图标大小
@@ -75,7 +75,7 @@ export const siteConfig: SiteConfig = {
 		logo: {
 			type: "image",
 			value: "assets/images/导航栏图标/知更鸟翅膀.png",
-			alt: "🎵",
+			alt: "首页",//图片路径挂了之后所显示的文字
 		},
 		// 导航栏标题
 		title: "Firefly",

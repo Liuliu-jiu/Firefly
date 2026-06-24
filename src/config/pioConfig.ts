@@ -80,7 +80,7 @@ export const spineModelConfig: SpineModelConfig = {
 
 	// 透明度
 	opacity: 1.0,
-};
+};	
 
 // Live2D 看板娘配置 (使用 l2d-widget 库，文档：https://l2d-widget.hacxy.cn)
 export const live2dWidgetConfig: Live2DWidgetConfig = {
