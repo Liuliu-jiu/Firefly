@@ -45,12 +45,11 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 		desktop: [
 			"assets/images/DesktopWallpaper/知更鸟/白鸽.png",
 			"assets/images/DesktopWallpaper/知更鸟/耳机.png",
+			"assets/images/DesktopWallpaper/知更鸟/重逢.png",
 			"assets/images/DesktopWallpaper/知更鸟/咖啡馆.png",
 			"assets/images/DesktopWallpaper/知更鸟/录制新歌.png",
-			"assets/images/DesktopWallpaper/知更鸟/梦幻.png",
 			"assets/images/DesktopWallpaper/知更鸟/欧式.png",
-			"assets/images/DesktopWallpaper/知更鸟/重逢.png",
-
+			"assets/images/DesktopWallpaper/知更鸟/梦幻.png",
 		],
 		// 移动背景图片（支持单张或多张随机）
 		// mobile: "assets/images/MobileWallpaper/m1.avif",
