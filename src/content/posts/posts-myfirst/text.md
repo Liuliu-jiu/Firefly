@@ -5,7 +5,7 @@ description: 这是文章的简短描述
 image: ./cover.jpg
 tags: [语法, markdown]
 category: 前端开发
-draft: true
+draft: false
 ---
 
 **这是我的第一篇文章**
