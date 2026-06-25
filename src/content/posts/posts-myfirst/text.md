@@ -101,4 +101,4 @@ this is a `code`
     如果你想为图片添加图像链接，那么就先用中括号将图片的语法括起来，然后后面加小括号，在小括号里面添加链接，链接会反映到图片下方的文字中
     添加图像链接语法：[图片语法](图片链接)
 -->
-[![这是一张图片](image\二创崩铁知更鸟图标(带黑色框).jpg "你好")](https://ts3.tc.mm.bing.net/th/id/OIP-C.sGShUtVninnQHP-YJsY4TAHaE7?r=0&rs=1&pid=ImgDetMain&o=7&rm=3)
+[![这是一张图片](image/二创崩铁知更鸟图标(带黑色框).jpg "你好")](https://ts3.tc.mm.bing.net/th/id/OIP-C.sGShUtVninnQHP-YJsY4TAHaE7?r=0&rs=1&pid=ImgDetMain&o=7&rm=3)
