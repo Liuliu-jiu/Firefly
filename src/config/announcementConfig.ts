@@ -5,7 +5,7 @@ export const announcementConfig: AnnouncementConfig = {
 	title: "公告",
 
 	// 公告内容
-	content: "欢迎来到我的博客！这是一则示例公告。",
+	content: "欢迎来到我的博客，我叫Liuli，一名学习Qt C++的编程小白，文章如有错误欢迎到评论区指正！",
 
 	// 是否允许用户关闭公告
 	closable: true,
