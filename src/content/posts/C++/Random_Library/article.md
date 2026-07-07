@@ -3,7 +3,7 @@ title: 随机库
 published: 2026-06-27
 pinned: false
 description: "个人总结的C++随机库知识点"
-image: "./image/咖啡馆.png"
+image: "../Article_Image/C++.png"
 tags: ["C++", "随机库"]
 category: C++
 draft: false

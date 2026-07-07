@@ -2,7 +2,7 @@
 title: 认识Qt
 published: 2026-06-27
 description: 介绍Qt的基本知识
-image: ./image/二创崩铁知更鸟图标.png
+image: "../Article_Image/Qt.png"
 tags: [Qt, 基本认识]
 category: Qt
 draft: false

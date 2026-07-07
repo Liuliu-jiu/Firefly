@@ -2,7 +2,7 @@
 title: markdown语法练习
 published: 2026-06-25
 description: 这是文章的简短描述
-image: ./cover.jpg
+image: "./image/markdown.png"
 tags: [语法, markdown]
 category: 前端开发
 draft: false

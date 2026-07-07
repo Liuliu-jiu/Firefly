@@ -3,7 +3,7 @@ title: 移动语义
 published: 2026-06-27
 pinned: false
 description: "个人总结的移动语义知识点"
-image: "./image/梦幻.png"
+image: "../Article_Image/C++.png"
 tags: ["C++", "移动语义"]
 category: C++
 draft: false

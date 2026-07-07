@@ -3,7 +3,7 @@ title: 版本控制器的方式
 published: 2026-06-29
 pinned: false
 description: "简单介绍版本控制器有哪些方式"
-image: "./image/欧式.png"
+image: "../Article_Image/Git.webp"
 tags: ["git", "版本控制器的方式"]
 category: git
 draft: false 

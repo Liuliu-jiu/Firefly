@@ -3,7 +3,7 @@ title: 智能指针
 published: 2026-06-27
 pinned: false
 description: "个人总结的智能指针知识点"
-image: "./image/欧式.png"
+image: "../Article_Image/C++.png"
 tags: ["C++", "智能指针"]
 category: C++
 draft: false
