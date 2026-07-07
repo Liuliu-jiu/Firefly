@@ -5,7 +5,7 @@ description: 介绍Qt的基本知识
 image: "../Article_Image/Qt.png"
 tags: [Qt, 基本认识]
 category: Qt
-draft: false
+draft: true
 ---
 
 # 基本概念
