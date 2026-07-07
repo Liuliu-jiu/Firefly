@@ -6,7 +6,7 @@ description: "简单介绍版本控制器有哪些方式"
 image: "../Article_Image/Git.webp"
 tags: ["git", "版本控制器的方式"]
 category: git
-draft: false 
+draft: true 
 ---
 
 ![版本控制器的方式图](image/Control_Version_Ways_Image.png)

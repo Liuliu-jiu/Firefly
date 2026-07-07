@@ -6,7 +6,7 @@ description: "个人总结的智能指针知识点"
 image: "../Article_Image/C++.png"
 tags: ["C++", "智能指针"]
 category: C++
-draft: false
+draft: true
 ---
 
 # 智能指针

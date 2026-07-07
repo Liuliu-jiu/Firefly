@@ -5,7 +5,7 @@ description: 介绍Qt的GUI基本结构
 image: "../Article_Image/Qt.png"
 tags: [Qt, GUI结构与运行结构]
 category: Qt
-draft: true
+draft: true #我的博客是书籍的精简版，会替代书籍，会损害作者销售权，造成侵权
 ---
 
 # 项目配置文件
