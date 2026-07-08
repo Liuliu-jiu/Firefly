@@ -118,3 +118,18 @@ this is a `code`
 | Paragraph   | Text        | And more      |
 
 [表格工具链接](https://www.tablesgenerator.com/markdown_tables)
+
+```
+这是一个代码块
+```
+
+```cpp
+std::cout << 1 << std::endl;//这是一个语法高亮的代码块
+```
+
+```cpp
+//main.cpp
+
+//如果想要创建一个带有标题的代码块，告诉读者代码块是在哪个文件的，就在反引号下方加一行注释，最好留个空行，然后在注释后面跟文件名，并且还要带后缀
+std::cout << 1 << std::endl;//这是一个带有标题的语法高亮的代码块
+```
