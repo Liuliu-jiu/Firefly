@@ -1,6 +1,6 @@
 ---
 title: Qt各类容器与函数
-published: 2026-07-30
+published: 2026-08-15
 description: 分享我个人学习Qt时所记录的各类及API（第二篇）
 image: "../Article_Image/Qt.png"
 tags: [Qt, 函数, 容器]
@@ -62,7 +62,7 @@ bool QFile::copy(const QString &sourceFilePath, const QString &destinationFilePa
 ```
 
 ### 返回值
-true：复制成功。
+true：复制成功。  
 false：复制失败（可通过 errorString() 获取错误信息）。
 
 ### 重要特性：
