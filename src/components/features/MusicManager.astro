@@ -10,6 +10,18 @@ const localPlaylist =
 	config.mode === "local" && config.local?.playlist
 		? config.local.playlist.map((song) => {
 				const isFullUrl = (path: string) => /^https?:\/\//.test(path);
+				const resolvePath = (path?: string) => {
+					if (!path) return undefined;
+					return isFullUrl(path) ? path : url(path);
+				};
+				const atmosphereData = song.atmosphere
+					? {
+							wallpaper: song.atmosphere.wallpaper ? resolvePath(song.atmosphere.wallpaper) : "",
+							mobileWallpaper: song.atmosphere.mobileWallpaper ? resolvePath(song.atmosphere.mobileWallpaper) : "",
+							hue: song.atmosphere.hue,
+							dimOpacity: song.atmosphere.dimOpacity,
+						}
+					: null;
 				return {
 					name: song.name,
 					artist: song.artist,
@@ -24,6 +36,7 @@ const localPlaylist =
 							? song.lrc
 							: url(song.lrc)
 						: undefined,
+					atmosphere: atmosphereData,
 				};
 			})
 		: [];
@@ -35,6 +48,8 @@ const managerConfigStr = JSON.stringify({
 	volume: config.volume ?? 0.7,
 	playMode: config.playMode ?? "list",
 	showLyrics: config.showLyrics ?? true,
+	enableAtmosphere: config.enableAtmosphere ?? false,
+	baseUrl: import.meta.env.BASE_URL,
 	i18n: {
 		noPlaying: i18n(I18nKey.musicNoPlaying),
 		lyrics: i18n(I18nKey.musicLyrics),
@@ -123,6 +138,231 @@ const managerConfigStr = JSON.stringify({
     else if (config.playMode === 'one') state.playMode = 1;
     else state.playMode = 0;
 
+    // ── Atmosphere (music-driven wallpaper & theme) ────────
+    var atmosphere = {
+        enabled: config.enableAtmosphere || false,
+        active: false,
+        original: {
+            hue: null,
+            dimOpacity: null,
+        },
+        current: {
+            hue: null,
+            wallpaper: null,
+            mobileWallpaper: null,
+            dimOpacity: null,
+        }
+    };
+
+    // Inject atmosphere transition styles
+    function injectAtmosphereStyles() {
+        if (!config.enableAtmosphere) return;
+        var existing = document.getElementById('firefly-music-atmosphere-styles');
+        if (existing) existing.remove();
+        var style = document.createElement('style');
+        style.id = 'firefly-music-atmosphere-styles';
+        style.textContent = `
+            /* Smooth dim overlay transition */
+            .banner-dim-overlay {
+                transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            /* Wallpaper image fade transition */
+            .banner-image-slot-desktop img,
+            .banner-image-slot-mobile img {
+                transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    injectAtmosphereStyles();
+
+    // ── Hue guard: re-apply atmosphere hue if overridden by setHue/Layout ──
+    var hueGuard = null;
+
+    function startHueGuard() {
+        if (hueGuard) return;
+        var root = document.documentElement;
+        hueGuard = new MutationObserver(function() {
+            if (!atmosphere.active || atmosphere.current.hue === null) return;
+            var currentHue = root.style.getPropertyValue('--hue').trim();
+            var expectedHue = String(atmosphere.current.hue);
+            if (currentHue !== expectedHue) {
+                root.style.setProperty('--hue', expectedHue);
+            }
+        });
+        hueGuard.observe(root, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    function stopHueGuard() {
+        if (hueGuard) {
+            hueGuard.disconnect();
+            hueGuard = null;
+        }
+    }
+
+    // Re-apply atmosphere after swup page transitions
+    window.addEventListener('swup:contentReplaced', function() {
+        // Re-inject styles (swup may have removed them from head)
+        injectAtmosphereStyles();
+        // Re-apply atmosphere if it was active
+        if (atmosphere.active) {
+            var track = state.playlist[state.currentIndex];
+            if (track) atmApply(track);
+        }
+    });
+
+    function atmGetElements() {
+        var wrapper = document.getElementById('wallpaper-wrapper');
+        var desktopSlot = wrapper ? wrapper.querySelector('.banner-image-slot-desktop') : null;
+        var mobileSlot = wrapper ? wrapper.querySelector('.banner-image-slot-mobile') : null;
+        var dimOverlay = document.querySelector('.banner-dim-overlay');
+
+        // Create or get atmosphere wallpaper layers
+        var desktopLayer = desktopSlot ? desktopSlot.querySelector('.atmosphere-wallpaper-layer') : null;
+        if (desktopSlot && !desktopLayer) {
+            desktopLayer = document.createElement('div');
+            desktopLayer.className = 'atmosphere-wallpaper-layer';
+            desktopLayer.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;opacity:0;transition:opacity 0.8s cubic-bezier(0.4,0,0.2,1);pointer-events:none;';
+            desktopSlot.appendChild(desktopLayer);
+        }
+
+        var mobileLayer = mobileSlot ? mobileSlot.querySelector('.atmosphere-wallpaper-layer') : null;
+        if (mobileSlot && !mobileLayer) {
+            mobileLayer = document.createElement('div');
+            mobileLayer.className = 'atmosphere-wallpaper-layer';
+            mobileLayer.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;opacity:0;transition:opacity 0.8s cubic-bezier(0.4,0,0.2,1);pointer-events:none;';
+            mobileSlot.appendChild(mobileLayer);
+        }
+
+        return { wrapper: wrapper, desktopLayer: desktopLayer, mobileLayer: mobileLayer, dimOverlay: dimOverlay };
+    }
+
+    function atmSaveOriginal() {
+        if (!atmosphere.enabled) return;
+        var els = atmGetElements();
+        var root = document.documentElement;
+
+        // Save original hue from inline style or computed style
+        var inlineHue = root.style.getPropertyValue('--hue');
+        if (inlineHue) {
+            atmosphere.original.hue = inlineHue.trim();
+        } else {
+            var computed = getComputedStyle(root).getPropertyValue('--hue');
+            atmosphere.original.hue = computed.trim();
+        }
+
+        // Save original dim opacity
+        if (els.dimOverlay) {
+            var bg = getComputedStyle(els.dimOverlay).backgroundColor;
+            var match = bg.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+            if (match) {
+                atmosphere.original.dimOpacity = parseFloat(match[1]);
+            }
+        }
+    }
+
+    function atmApply(track) {
+        if (!atmosphere.enabled || !track || !track.atmosphere) {
+            return;
+        }
+        var atm = track.atmosphere;
+        var els = atmGetElements();
+        var root = document.documentElement;
+
+        // Save original state on first apply
+        if (!atmosphere.active) {
+            atmSaveOriginal();
+        }
+
+        atmosphere.active = true;
+
+        // Apply hue (direct inline + MutationObserver guard)
+        if (atm.hue !== undefined && atm.hue !== null) {
+            root.style.setProperty('--hue', String(atm.hue));
+            atmosphere.current.hue = atm.hue;
+            startHueGuard();
+        }
+
+        // Apply desktop wallpaper (via overlay layer)
+        if (atm.wallpaper && els.desktopLayer) {
+            var desktopUrl = atm.wallpaper;
+            if (els.desktopLayer.dataset.url !== desktopUrl) {
+                var tempImg = new Image();
+                tempImg.onload = function() {
+                    if (els.desktopLayer && atmosphere.active) {
+                        els.desktopLayer.style.backgroundImage = 'url("' + desktopUrl + '")';
+                        els.desktopLayer.style.opacity = '1';
+                        els.desktopLayer.dataset.url = desktopUrl;
+                    }
+                };
+                tempImg.onerror = function() {
+                    console.warn('[Music Atmosphere] Failed to load desktop wallpaper:', desktopUrl);
+                };
+                tempImg.src = desktopUrl;
+            } else {
+                els.desktopLayer.style.opacity = '1';
+            }
+            atmosphere.current.wallpaper = atm.wallpaper;
+        }
+
+        // Apply mobile wallpaper (via overlay layer)
+        if (atm.mobileWallpaper && els.mobileLayer) {
+            var mobileUrl = atm.mobileWallpaper;
+            if (els.mobileLayer.dataset.url !== mobileUrl) {
+                var tempImgM = new Image();
+                tempImgM.onload = function() {
+                    if (els.mobileLayer && atmosphere.active) {
+                        els.mobileLayer.style.backgroundImage = 'url("' + mobileUrl + '")';
+                        els.mobileLayer.style.opacity = '1';
+                        els.mobileLayer.dataset.url = mobileUrl;
+                    }
+                };
+                tempImgM.onerror = function() {
+                    console.warn('[Music Atmosphere] Failed to load mobile wallpaper:', mobileUrl);
+                };
+                tempImgM.src = mobileUrl;
+            } else {
+                els.mobileLayer.style.opacity = '1';
+            }
+            atmosphere.current.mobileWallpaper = atm.mobileWallpaper;
+        }
+
+        // Apply dim opacity
+        if (atm.dimOpacity !== undefined && atm.dimOpacity !== null && els.dimOverlay) {
+            els.dimOverlay.style.background = 'rgba(0, 0, 0, ' + atm.dimOpacity + ')';
+            atmosphere.current.dimOpacity = atm.dimOpacity;
+        }
+    }
+
+    function atmRestore() {
+        if (!atmosphere.enabled || !atmosphere.active) return;
+        var els = atmGetElements();
+        var root = document.documentElement;
+
+        atmosphere.active = false;
+
+        // Restore hue (stop guard, then restore inline value)
+        stopHueGuard();
+        if (atmosphere.original.hue !== null) {
+            root.style.setProperty('--hue', atmosphere.original.hue);
+        }
+
+        // Fade out desktop wallpaper layer
+        if (els.desktopLayer) {
+            els.desktopLayer.style.opacity = '0';
+        }
+
+        // Fade out mobile wallpaper layer
+        if (els.mobileLayer) {
+            els.mobileLayer.style.opacity = '0';
+        }
+
+        // Restore dim opacity
+        if (atmosphere.original.dimOpacity !== null && els.dimOverlay) {
+            els.dimOverlay.style.background = 'rgba(0, 0, 0, ' + atmosphere.original.dimOpacity + ')';
+        }
+    }
+
     // ── Event helpers ────────────────────────────────────────
     function emit(name, detail) {
         window.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
@@ -200,6 +440,98 @@ const managerConfigStr = JSON.stringify({
         }
     }
 
+    // ── MP3 cover art extraction (ID3v2 APIC) ──────────────────
+    var coverCache = {};
+
+    function extractCoverFromMP3(url) {
+        if (url in coverCache) {
+            return Promise.resolve(coverCache[url]);
+        }
+        return fetch(url, { headers: { Range: 'bytes=0-524287' } })
+            .then(function(response) { return response.ok ? response.arrayBuffer() : null; })
+            .then(function(buffer) {
+                if (!buffer) { coverCache[url] = null; return null; }
+                var result = parseID3v2ForAPIC(new Uint8Array(buffer));
+                coverCache[url] = result;
+                return result;
+            })
+            .catch(function() { coverCache[url] = null; return null; });
+    }
+
+    function parseID3v2ForAPIC(bytes) {
+        if (bytes.length < 10) return null;
+        if (bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return null;
+
+        var majorVersion = bytes[3];
+        var flags = bytes[5];
+        var tagSize = bytes[6] * 0x200000 + bytes[7] * 0x4000 + bytes[8] * 0x80 + bytes[9];
+        var tagEnd = Math.min(10 + tagSize, bytes.length);
+        var offset = 10;
+
+        // Skip extended header (bit 6)
+        if (flags & 0x40) {
+            if (offset + 4 > bytes.length) return null;
+            var extSize;
+            if (majorVersion >= 4) {
+                extSize = bytes[offset] * 0x200000 + bytes[offset+1] * 0x4000 + bytes[offset+2] * 0x80 + bytes[offset+3];
+                offset += 4 + extSize;
+            } else {
+                extSize = bytes[offset] * 0x1000000 + bytes[offset+1] * 0x10000 + bytes[offset+2] * 0x100 + bytes[offset+3];
+                offset += 4 + extSize + 2;
+            }
+        }
+
+        while (offset + 10 <= tagEnd) {
+            if (bytes[offset] === 0) break;
+            var frameId = String.fromCharCode(bytes[offset], bytes[offset+1], bytes[offset+2], bytes[offset+3]);
+            var frameSize;
+            if (majorVersion >= 4) {
+                frameSize = bytes[offset+4] * 0x200000 + bytes[offset+5] * 0x4000 + bytes[offset+6] * 0x80 + bytes[offset+7];
+            } else {
+                frameSize = bytes[offset+4] * 0x1000000 + bytes[offset+5] * 0x10000 + bytes[offset+6] * 0x100 + bytes[offset+7];
+            }
+            if (frameSize <= 0 || offset + 10 + frameSize > bytes.length) break;
+
+            if (frameId === 'APIC') {
+                var result = parseAPICFrame(bytes, offset + 10, frameSize);
+                if (result) return result;
+            }
+            offset += 10 + frameSize;
+        }
+        return null;
+    }
+
+    function parseAPICFrame(bytes, offset, size) {
+        var pos = offset;
+        var end = offset + size;
+        if (pos >= end) return null;
+
+        var encoding = bytes[pos++];
+        var mimeStart = pos;
+        while (pos < end && bytes[pos] !== 0) pos++;
+        var mime = '';
+        for (var i = mimeStart; i < pos; i++) mime += String.fromCharCode(bytes[i]);
+        pos++;
+        if (pos >= end) return null;
+
+        pos++; // picture type
+
+        if (encoding === 1 || encoding === 2) {
+            while (pos + 1 < end && !(bytes[pos] === 0 && bytes[pos+1] === 0)) pos += 2;
+            pos += 2;
+        } else {
+            while (pos < end && bytes[pos] !== 0) pos++;
+            pos++;
+        }
+        if (pos >= end) return null;
+
+        var picBytes = bytes.subarray(pos, end);
+        if (picBytes.length === 0) return null;
+
+        var blob = new Blob([picBytes], { type: mime || 'image/jpeg' });
+        return URL.createObjectURL(blob);
+    }
+
     // ── Track loading ────────────────────────────────────────
     function loadTrack(index, autoPlay) {
         if (index < 0 || index >= state.playlist.length) return;
@@ -211,6 +543,15 @@ const managerConfigStr = JSON.stringify({
 
         loadLyrics(track);
 
+        // Auto-extract cover from MP3 file if not configured
+        if (!track.pic && track.url) {
+            extractCoverFromMP3(track.url).then(function(blobUrl) {
+                if (ver !== loadVersion || !blobUrl) return;
+                track.pic = blobUrl;
+                emit('fm:cover', { index: index, pic: blobUrl });
+            });
+        }
+
         emit('fm:track', { index: index, track: track, autoPlay: !!autoPlay });
 
         if (autoPlay) {
@@ -218,6 +559,8 @@ const managerConfigStr = JSON.stringify({
                 if (ver !== loadVersion) return; // stale, discard
                 state.isPlaying = true;
                 emit('fm:play-state', { isPlaying: true });
+                // Apply atmosphere for new track when auto-playing
+                atmApply(track);
             }).catch(function (e) {
                 if (ver !== loadVersion) return; // stale, discard
                 if (e.name === 'AbortError') return; // interrupted by new load
@@ -235,11 +578,16 @@ const managerConfigStr = JSON.stringify({
             audio.play().then(function () {
                 state.isPlaying = true;
                 emit('fm:play-state', { isPlaying: true });
+                // Apply atmosphere when playing
+                var currentTrack = state.playlist[state.currentIndex];
+                if (currentTrack) atmApply(currentTrack);
             });
         } else {
             audio.pause();
             state.isPlaying = false;
             emit('fm:play-state', { isPlaying: false });
+            // Restore atmosphere when paused
+            atmRestore();
         }
     }
 

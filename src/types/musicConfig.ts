@@ -15,6 +15,9 @@ export type MusicPlayerConfig = {
 	// 是否在导航栏显示音乐播放器
 	showInNavbar?: boolean;
 
+	// 是否启用音乐氛围模式（播放音乐时自动切换壁纸和主题色）
+	enableAtmosphere?: boolean;
+
 	// Meting API 配置
 	meting?: {
 		// Meting API 地址
@@ -44,6 +47,12 @@ export type MusicPlayerConfig = {
 			url: string; // 音乐文件路径（相对于 public 目录）
 			cover?: string; // 封面图片路径（相对于 public 目录）
 			lrc?: string; // 歌词内容，支持 LRC 格式
+			atmosphere?: { // 音乐氛围配置
+				wallpaper?: string; // 桌面端壁纸路径
+				mobileWallpaper?: string; // 移动端壁纸路径
+				hue?: number; // 主题色色相（0-360）
+				dimOpacity?: number; // 背景暗度（0-1）
+			};
 		}>;
 	};
 };

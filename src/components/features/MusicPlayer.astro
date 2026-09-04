@@ -653,6 +653,14 @@ const widgetId =
         updatePlaylistActiveUI(d.index);
     });
 
+    on('fm:cover', function (e) {
+        var d = e.detail;
+        if (d.pic) {
+            ui.cover.classList.add('opacity-0');
+            ui.cover.src = d.pic;
+        }
+    });
+
     on('fm:play-state', function (e) {
         updatePlayStateUI(e.detail.isPlaying);
     });

@@ -10,8 +10,11 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 	// 是否在导航栏显示音乐播放器入口
 	showInNavbar: true,
 
+	// 是否启用音乐氛围模式（播放音乐时自动切换壁纸和主题色）
+	enableAtmosphere: true,
+
 	// 使用方式："meting" 使用 Meting API，"local" 使用本地音乐列表
-	mode: "meting",
+	mode: "local",
 
 	// 默认音量 (0-1)
 	volume: 0.7,
@@ -52,9 +55,32 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 			{
 				name: "使一颗心免于哀伤",
 				artist: "知更鸟 / HOYO-MiX / Chevy",
-				url: "/assets/music/使一颗心免于哀伤-哼唱.mp3",
-				cover: "/assets/music/cover/109951169585655912.webp",
+				url: "/assets/music/使一颗心免于哀伤/使一颗心免于哀伤-哼唱.mp3",
+				cover: "/assets/music/使一颗心免于哀伤/cover/109951169585655912.webp",
 				lrc: "",
+				// 音乐氛围配置：播放时自动切换壁纸和主题色
+				atmosphere: {
+					wallpaper: "/assets/images/DesktopWallpaper/知更鸟/录制新歌.png",
+					mobileWallpaper: "/assets/images/MobileWallpaper/知更鸟/祈祷.webp",
+					hue: 280, // 主题色色相（0-360），280为紫色系
+					dimOpacity: 0.4, // 背景暗度（0-1）
+				},
+			},
+
+			{
+				name: "再见的路口",
+				artist: "再见的路口 Where We Part Ways / HOYO-MiX",
+				url: "/assets/music/再见的路口/HOYO-MiX-再见的路口.mp3",
+				// cover 留空，播放器会自动从 MP3 文件的 ID3 标签中提取嵌入封面
+				cover: "",
+				lrc: "",
+				// 音乐氛围配置：播放时自动切换壁纸和主题色
+				atmosphere: {
+					wallpaper: "/assets/images/DesktopWallpaper/崩铁风景图/崩铁银杏大道.jpg",
+					mobileWallpaper: "/assets/images/MobileWallpaper/知更鸟/祈祷.webp",
+					hue: 90, // 主题色色相（0-360），280为紫色系
+					dimOpacity: 0.4, // 背景暗度（0-1）
+				},
 			},
 		],
 	},
